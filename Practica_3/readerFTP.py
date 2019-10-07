@@ -11,7 +11,7 @@ regFile = r"FILE:(.*?) "
 regPath = r"PATH:(.*?) "
 regMethod = r"METHOD:(.*?) "
 regCode = r"CODE:(\d{1,3}) "
-regRESP = r"Resp:(.*)"
+regRESP = r"RESP:(.*)"
 regCodeError = r"CODE:5.*"
 everything = r".*" #toma todos los caracteres de la línea excepto el salto de linea
 
