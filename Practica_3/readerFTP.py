@@ -97,7 +97,7 @@ def prepareReg(argumentos):
 	if(len(argumentos)==3): #si solo se hara el filtrado por un parametro
 		argumentoFiltro = argumentos[2]#se pasa el argumento del filtro elegido
 		argumentoFinal =  everything+argumentoFiltro+everything#se concatenan dos strings, el de la fecha específica y el que toma todo lo demas			
-	elif(argumentos[1]=='Date' and argumentos[3]=='Hour'):#si se hará el filtrado por dos argumentos(fecha y hora)	
+	elif(argumentos[1]=='date' and argumentos[3]=='hour'):#si se hará el filtrado por dos argumentos(fecha y hora)	
 		
 		digito = r"\d{2}"
 		argumentoFiltro = argumentos[2] #argumento del primer filtro(fecha)
@@ -167,7 +167,7 @@ readLog("/var/log/proftpd/custom.log",sys.argv)
 
 #Agregar las siguientes líneas al archivo proftpd.conf
 
-LogFormat custom "TIME:%t CLIENT:%u IP:%a FILE:%F PATH:%f METHOD:%m CODE:%s RESP:%S"
+LogFormat custom "TIME:%t CLIENT:%u IP:%a FILE:%F PATH:%f METHOD:%m CODE:%s RESP:%S HOSTNAME:%H"
 TransferLog /var/log/proftpd/xferlog
 SystemLog   /var/log/proftpd/proftpd.log
 ExtendedLog /var/log/proftpd/custom.log ALL custom
@@ -177,26 +177,29 @@ ExtendedLog /var/log/proftpd/custom.log ALL custom
 Ejecutando el script desde consola:
 
 1.-Ver registros por fecha: 
-python3 readerFTP.Py Date dd/mmm/aaaa. 
+python3 readerFTP.Py date dd/mmm/aaaa. 
 
 dd = día del mes a dos dígitos.
 mmm = mes del año, los tres primeros caracteres(en minúsculas), ej. si el mes es Octubre: oct.
 aaaa = los cuatro dígitos del año actual.
 
 2.-Ver registros por fecha y hora(formato de 24hrs): 
-python3 readerFTP.Py Date dd/mmm/aaaa Hour \d{2}
+python3 readerFTP.Py date dd/mmm/aaaa hour \d{2}
 
 donde \d{2} es un dígito de dos números, ej. 00,01,02,03,04,05,06,07... 19,20,21,22,23 
 
 3.-Ver registros por nombre de usuario: 
-python3 readerFTP.py User name_user
+python3 readerFTP.py user name_user
 
 4.-Ver registros por ip: 
-python3 readerFTP.py Ip ip_user
+python3 readerFTP.py ip ip_user
 
 5.-Correr bucle de errores
 python3 readerFTP.py error
 
 	este último comando mostrara los últimos 5 errores que hubo en el server
+
+6.- Ver usuarios online
+python3 readerFTP.py online
 
 """
