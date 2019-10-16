@@ -2,6 +2,7 @@ import re
 from tabulate import tabulate
 import sys
 import time
+import subprocess 
 
 #LogFormat custom "TIME:%t CLIENT:%u IP:%a FILE:%F PATH:%f METHOD:%m CODE:%s"
 regDate = r"TIME:(\[.*\])"
@@ -14,26 +15,73 @@ regCode = r"CODE:(\d{1,3}) "
 regRESP = r"RESP:(.*)"
 regCodeError = r"CODE:5.*"
 everything = r".*" #toma todos los caracteres de la línea excepto el salto de linea
+regHostname = r"HOSTNAME:(.*)"
+
+def getHostname(log):
+	results_list = re.findall(regHostname,log)
+	#print(results_list)
+	return results_list[0]
+
+def getIpUsers(log,users):
+	ips= []
+	for user in users:
+		argumentoFinal =  everything+user+everything#se concatenan dos strings, el de la fecha específica y el que toma todo lo demas
+		regExpresion = re.compile(argumentoFinal)
+		results_list = regExpresion.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
+		ip = re.findall(regIP,results_list[len(results_list)-1])
+		#print(ip)
+		ips.append(ip[0])
+	return ips
+
+def getUsers(prelista):
+	usersOnline = []
+	for element in prelista:
+		splitter = element.split(' ')#separa todos los argumentos por espacio
+		usersOnline.append(splitter[1])#toma el argumento que pertenece al usuario
+	return usersOnline
+
+def resumenUsuarios(log):
+	
+	resultCommand = str(subprocess.check_output('ftpwho'))
+	#print(resultCommand)
+	#print(type(resultCommand))
+	listaTotal = resultCommand.split('\\n')
+	#print(listaTotal)
+	#print(len(listaTotal))
+	prelista = listaTotal[1:len(listaTotal)-2]
+	#print(prelista)
+	users = getUsers(prelista)
+	#print(users)
+	hostname = getHostname(log)
+	#print(hostname)
+	ips = getIpUsers(log,users)
+	REGISTROS = []
+	for i in range(len(users)):
+		REGISTROS.append([users[i],ips[i],hostname])
+	print(tabulate(REGISTROS,headers=['User','Ip','Hostname'],tablefmt="fancy_grid"))	
 
 def readLog(path,argumentos):
 	try:
 		log = reader(path)
 		
-		if(argumentos[1]!='error'):
+		if(argumentos[1]=='user' or argumentos[1]=='date' or argumentos[1]=='ip'):
 			#print('1')
-			regExpression = prepareReg(argumentos)
-			results_list = regExpression.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
+			regExpresion = prepareReg(argumentos)
+			results_list = regExpresion.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
 			getTable(results_list)	
-		else:
+		elif(argumentos[1]=='error'):
 			#print('2')
 			while(True):#queda en bucle y actualiza cada 10 segundos
 				argumentoFinal =  everything+regCodeError+everything#se concatenan dos strings, el de la fecha específica y el que toma todo lo demas
-				reFinal = re.compile(argumentoFinal)
+				regExpresion = re.compile(argumentoFinal)
 				#print(reFinal)
-				results_list = reFinal.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
+				results_list = regExpresion.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
 				#print(results_list)
 				get_only_errors(results_list)
 				time.sleep(10)
+		elif(argumentos[1]=='online'):
+			resumenUsuarios(log)
+
 
 	except Exception as e:
 		print('Un error en los argumentos ha ocurrido')
@@ -47,9 +95,8 @@ def prepareReg(argumentos):
 	everything = r".*" #toma todos los caracteres de la línea excepto el salto de linea
 	
 	if(len(argumentos)==3): #si solo se hara el filtrado por un parametro
-		if(argumentos[1]!='error'):#si no se buscan los registros de error
-			argumentoFiltro = argumentos[2]#se pasa el argumento del filtro elegido
-			argumentoFinal =  everything+argumentoFiltro+everything#se concatenan dos strings, el de la fecha específica y el que toma todo lo demas			
+		argumentoFiltro = argumentos[2]#se pasa el argumento del filtro elegido
+		argumentoFinal =  everything+argumentoFiltro+everything#se concatenan dos strings, el de la fecha específica y el que toma todo lo demas			
 	elif(argumentos[1]=='Date' and argumentos[3]=='Hour'):#si se hará el filtrado por dos argumentos(fecha y hora)	
 		
 		digito = r"\d{2}"
@@ -114,6 +161,7 @@ def printList(lista):
 
 #print("sys.argv {}".format(sys.argv))
 readLog("/var/log/proftpd/custom.log",sys.argv)
+#resumenUsuarios()
 
 """ 
 
