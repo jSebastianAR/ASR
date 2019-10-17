@@ -12,7 +12,7 @@ regFile = r"FILE:(.*?) "
 regPath = r"PATH:(.*?) METHOD"
 regMethod = r"METHOD:(.*?) "
 regCode = r"CODE:(\d{1,3}) "
-regRESP = r"RESP:(.*)"
+regRESP = r"RESP:(.*) "
 regCodeError = r"CODE:5.*"
 everything = r".*" #toma todos los caracteres de la línea excepto el salto de linea
 regHostname = r"HOSTNAME:(.*)"
@@ -70,26 +70,46 @@ def resumenUsuarios(log):
 
 def readLog(path,argumentos):
 	try:
+		"""
+		#1
+		"""
 		log = reader(path)
-		
-		if(argumentos[1]=='user' or argumentos[1]=='date' or argumentos[1]=='ip'):
-			#print('1')
-			regExpresion = prepareReg(argumentos)
+
+		if(len(argumentos)==2): #Para error y online
+			if(argumentos[1]=='error'):
+				regExpresion = joinReg(everything,regCodeError)
+				while(True):#queda en bucle y actualiza cada 10 segundos
+					#print(reFinal)
+					results_list = regExpresion.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
+					#print(results_list)
+					get_only_errors(results_list)
+					time.sleep(10)
+			elif(argumentos[1]=='online'):
+				resumenUsuarios(log)
+		elif(len(argumentos)==3): #para ip, user o date
+			regExpresion = joinReg(everything,argumentos[2])
 			results_list = regExpresion.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
 			getTable(results_list)	
-		elif(argumentos[1]=='error'):
-			#print('2')
-			while(True):#queda en bucle y actualiza cada 10 segundos
-				argumentoFinal =  everything+regCodeError+everything#se concatenan dos strings, el de la fecha específica y el que toma todo lo demas
-				regExpresion = re.compile(argumentoFinal)
-				#print(reFinal)
-				results_list = regExpresion.findall(log)#ENCUENTRA TODO LO QUE COINCIDA CON LA EXPRESION REGULAR DEL DÍA INDICADO
-				#print(results_list)
-				get_only_errors(results_list)
-				time.sleep(10)
-		elif(argumentos[1]=='online'):
-			resumenUsuarios(log)
-
+		elif(len(argumentos)==5):#Para (date y hour) o (user y date)
+			if(argumentos[1]=='date' and argumentos[3]=='hour'):#si se hará el filtrado por dos argumentos(fecha y hora)
+				argumentoFinal = argumentos[2]+":"+argumentos[4]+":"+digito+":"+digito
+				regExpresion = joinReg(everything,argumentoFinal)
+				getTable(results_list)	
+			elif(argumentos[1]=='user' and argumentos[3]=='date'):#si se hará el filtrado por dos argumentos(usuario y fecha)
+				reg_date = joinReg(everything,argumentos[4])#buscara primero todo lo relacionado a esa fecha
+				reg_user = joinReg(everything,argumentos[2])#después hará el filtrado por usuario
+				list_date = reg_date.findall(log)
+				
+				lista_final = []
+				for line in list_date:
+					#print(line)
+					linea = reg_user.findall(line)
+					#print(linea)
+					if len(linea)!=0:
+						lista_final.append(linea[0]) 
+				#print(lista_final)	
+				getTable(lista_final)
+				
 
 	except Exception as e:
 		print('Un error ha ocurrido')
@@ -99,21 +119,13 @@ def reader(path):
 	with open(path) as file:
 		return file.read()
 
-def prepareReg(argumentos):
-	everything = r".*" #toma todos los caracteres de la línea excepto el salto de linea
-	
-	if(len(argumentos)==3): #si solo se hara el filtrado por un parametro
-		argumentoFiltro = argumentos[2]#se pasa el argumento del filtro elegido
-		argumentoFinal =  everything+argumentoFiltro+everything#se concatenan dos strings, el de la fecha específica y el que toma todo lo demas			
-	elif(argumentos[1]=='date' and argumentos[3]=='hour'):#si se hará el filtrado por dos argumentos(fecha y hora)	
-		
-		digito = r"\d{2}"
-		argumentoFiltro = argumentos[2] #argumento del primer filtro(fecha)
-		argumentoFiltro2 = argumentos[4] #argumento del segundo filtro(hora)
-		argumentoFinal = everything+argumentoFiltro+":"+argumentoFiltro2+":"+digito+":"+digito+everything
+def joinReg(reg1,reg2):
+	reFinal = reg1+reg2+reg1
+	return re.compile(reFinal)
 
-	return re.compile(argumentoFinal) #Todo se convierte en una sola expresion regular
-	
+"""
+#2
+"""	
 def get_only_errors(lista):
 	REGISTROS = []
 	for line in lista:
