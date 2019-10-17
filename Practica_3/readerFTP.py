@@ -9,13 +9,15 @@ regDate = r"TIME:(\[.*\])"
 regClient = r"CLIENT:(.*?) "
 regIP = r"IP:(.*?) "
 regFile = r"FILE:(.*?) "
-regPath = r"PATH:(.*?) "
+regPath = r"PATH:(.*?) METHOD"
 regMethod = r"METHOD:(.*?) "
 regCode = r"CODE:(\d{1,3}) "
 regRESP = r"RESP:(.*)"
 regCodeError = r"CODE:5.*"
 everything = r".*" #toma todos los caracteres de la línea excepto el salto de linea
 regHostname = r"HOSTNAME:(.*)"
+regUsers = r"(\w+) "
+
 
 def getHostname(log):
 	results_list = re.findall(regHostname,log)
@@ -36,20 +38,26 @@ def getIpUsers(log,users):
 def getUsers(prelista):
 	usersOnline = []
 	for element in prelista:
-		splitter = element.split(' ')#separa todos los argumentos por espacio
+		#print(element)
+		#splitter = element.split(' ')#separa todos los argumentos por espacio
+		#usersOnline.append(splitter[1])#toma el argumento que pertenece al usuario
+		splitter = re.findall(regUsers,element)#separa todos los argumentos por espacio
+		#print(splitter)
 		usersOnline.append(splitter[1])#toma el argumento que pertenece al usuario
+		
 	return usersOnline
 
 def resumenUsuarios(log):
 	
 	resultCommand = str(subprocess.check_output('ftpwho'))
 	#print(resultCommand)
-	#print(type(resultCommand))
 	listaTotal = resultCommand.split('\\n')
 	#print(listaTotal)
+	#print()
 	#print(len(listaTotal))
 	prelista = listaTotal[1:len(listaTotal)-2]
 	#print(prelista)
+	#print()
 	users = getUsers(prelista)
 	#print(users)
 	hostname = getHostname(log)
@@ -84,7 +92,7 @@ def readLog(path,argumentos):
 
 
 	except Exception as e:
-		print('Un error en los argumentos ha ocurrido')
+		print('Un error ha ocurrido')
 		print("Excepcion: {}".format(e))	
 
 def reader(path):
