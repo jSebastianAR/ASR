@@ -211,15 +211,22 @@ donde \d{2} es un dígito de dos números, ej. 00,01,02,03,04,05,06,07... 19,20,
 3.-Ver registros por nombre de usuario: 
 python3 readerFTP.py user name_user
 
-4.-Ver registros por ip: 
+donde name_user es una cadena de caracteres con el nombre de usuario que nos interesa monitorear
+
+4.-Ver registros por nombre de usuario y fecha específica
+python3 readerFTP.py user name_user date dd/mmm/aaaa. 
+
+*Respetando el formato de valores dados en user(3) y date(1)
+
+5.-Ver registros por ip: 
 python3 readerFTP.py ip ip_user
 
-5.-Correr bucle de errores
+6.-Correr bucle de errores
 python3 readerFTP.py error
 
-	este último comando mostrara los últimos 5 errores que hubo en el server
+Este comando mostrara los últimos 5 errores que hubo en el server
 
-6.- Ver usuarios online
+7.- Ver usuarios online
 python3 readerFTP.py online
 
 """
