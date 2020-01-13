@@ -1,0 +1,379 @@
+\documentclass[10pt,letterpaper]{article}
+
+\usepackage[spanish]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\graphicspath{ {/home/jsebastian-ar/Documentos/Latex_images/Apache2/} }
+\usepackage[export]{adjustbox}
+
+\begin{document}
+
+\title{Montar Servidor Apache2 en Contenedor Docker}
+\author{Acosta Rosales Jair Sebasti\'an}
+\date{\today}
+\maketitle
+
+\section{Introducci\'on}
+
+Docker es una herrramienta de virtualizaci\'on basado en el despliegue de contenedores, comenz\'o como un proyecto de dotCloud por Solomon Hykes y Sebastien Pahl debutando finalmente para todo el p\'ublico en PyCon Santa Clara en el a\~no 2013.\\ \\
+
+Esta herramienta permite llevar a cabo la virtualizaci\'on de un entorno apto para alguna aplicaci\'on requerida, sin la necesidad de usar las m\'aquinas virtuales tradicionales, las cuales necesitaban ocupar una cantidad considerable de recursos para ser montadas en un servidor, con Docker no se necesita un nuevo sistema operativo para que las aplicaciones montadas en los contenedores puedan funcionar, si bien si es necesario que corran en un ambiente base, este solo usar\'a lo necesario para que la aplicaci\'on pueda ser ejecutada sin ning\'un tipo de problema, manteniendo la estabilidad de la aplicaci\'on, la portabilidad para ser ejecutada en otra computadora y el r\'apido despliegue de esta para poder ofrecer sus servicios lo m\'as pronto posible. \\ \\
+
+Con docker como herramienta de virtualizaci\'on se pretende que un mismo equipo de trabajo pueda trabajar sobre la misma versi\'on de la aplicaci\'on sin necesidad de preocuparse de las dependencias que se necesitan en cada una de las computadoras de trabajo, pues la imagen(nombre dado al archivo creado especificamente para la aplicaci\'on) ya contiene todas esas dependencias requeridas, por lo que permite aprovechar ese tiempo requerido en la instalaci\'on de dependencias en el desarrollo y pruebas de la aplicaci\'on. \\ \\ 
+
+Otra de las grandes ventajas de docker es el uso de una memoria cache que permite crear nuevas im\'agenes a partir de los paquetes que ya se instalaron en otras aplicaciones, es decir que reusa los paquetes para ahorrar espacio. \\ \\
+
+\newpage
+\section{Instalaci\'on de Docker en SO Linux Mint 19.2 Tina}
+\begin{enumerate}
+
+\item Primeramente debemos acceder a la url: \url{https://docs.docker.com/}, all\'i debemos ir al apartado "Get Docker". \\
+
+\begin{figure}[h]
+\includegraphics[width=1.2\textwidth,height=7cm]{idocker1}
+\centering
+\end{figure}
+
+\item Se desplegar\'a un men\'u a la izquierda, en el que debemos seleccionar el apartado "Linux". \\
+
+\begin{figure}[h]
+\includegraphics[width=.4\textwidth,height=7cm]{idocker2}
+\centering
+\end{figure}
+
+\item Una vez desplegado el men\'u de Linux, seleccionaremos el S.O m\'as parecido a Linux Mint, es decir Ubuntu, dado que ambos est\'an basados en Debian. \\
+
+
+\begin{figure}[h]
+\includegraphics[width=.5\textwidth,height=8cm]{idocker3}
+\centering
+\end{figure}
+
+\item A nuestra derecha se abrir\'a el apartado de instrucciones para instalar Docker en diferentes versiones de Ubuntu, en este caso la versi\'on de Linux Mint 19.2 Tina usada es bastante similar a Ubuntu Bionic 18.04(LTS), ambas son las versiones recientes m\'as estables respectivamente, basadas en el Sistema Operativo Debian.
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth,height=5cm]{idocker4}
+\centering
+\end{figure}
+
+\newpage
+\item Nos aseguraremos de no tener una versi\'on de docker ya instalada, ejecutando en consola el siguiente comando: \\
+
+\$ sudo apt-get remove docker docker-engine docker.io containerd runc \\
+
+De este modo eliminamos alguna versi\'on antigua o nos aseguramos de no tenerlo instalado. \\
+
+\item Bajamos hasta el apartado denominado 'Install using the convenience script'.
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth,height=6cm]{idocker5}
+\centering
+\end{figure} 
+
+Justamente en este apartado se encuentran dos comandos que permiten la descarga y la ejecuci\'on del instalador para docker, el primero: \\
+
+\$ curl -fsSL https://get.docker.com -o get-docker.sh \\ 
+
+De modo que podemos observar la descarga de un archivo llamado get-docker.sh \\
+
+\begin{figure}[h]
+\includegraphics[width=12cm,height=3cm]{idocker6}
+\centering
+\end{figure} 
+
+\newpage
+Una vez descargados los paquetes, procedemos a instalarlos con el comando: \\ 
+
+\$ sudo sh get-docker.sh
+
+\item Para finalizar procedemos a revisar la versi\'on instalada con el comando: \\
+
+\$ sudo docker version
+
+\begin{figure}[h]
+\includegraphics[width=5cm,height=6cm]{idocker7}
+\centering
+\end{figure}
+\end{enumerate}
+
+\newpage
+\section{Creaci\'on de imagen para servidor Apache2}
+Para la creaci\'on de la imagen en donde nuestro servidor Apache2 estar\'a dando servicio, es necesario tener los archivos de configuraci\'on del servicio(Apache2), adem\'as de los archivos de cada uno de las p\'aginas web que tenemos, un archivo que llamaremos Dockerfile el cual contiene todas las instrucciones necesarias para crear nuestra imagen con la configuraci\'on requerida para el servidor, como primer paso crearemos una carpeta donde reuniremos todos los archivos para construir la imagen, esta carpeta ser\'a llamada apache2, dentro de esta carpeta comenzaremos por guardar los sitios web con los que contamos.
+
+\begin{enumerate}
+\item Se tienen 3 sitios web distintos, cada uno de ellos sera guardado de forma anidada en dos carpetas, de modo que al guardarlo dentro de la carpeta apache2 anteriormente creada la jerarqu\'ia de carpetas queda de la siguiente forma:
+\begin{itemize}
+\item apache2/Sitio1/helloworld/
+\item apache2/Sitio2/lapalma/
+\item apache2/Sitio3/nightbeach/
+\end{itemize}
+El porqu\'e de esta forma de guardar los archivos en dos carpetas en lugar de una ser\'a explicado m\'as adelante al momento de crear la imagen con todos los archivos reunidos.
+
+
+\item Es momento de obtener los archivos de configuraci\'on de nuestro servidor para que este otorgue el servicio del modo que nosotros deseamos, en este caso para el servidor apache2, nos centraremos en dos archivos espec\'ificos, los archivos son: \\
+
+\begin{itemize}
+\item \textbf{apache2.conf}, ubicado en la carpeta /etc/apache2/ 
+\item \textbf{000-default.conf}, ubicado en la carpeta /etc/apache2/sites-available
+\end{itemize}
+Para este punto es recomendable tener una base de estos archivos, por lo que si se tiene el servidor apache2 instalado en el sistema operativo, se puede acceder a estas rutas y copiar y pegar estos archivos dentro de la carpeta apache2 creada con anterioridad, en este caso se ten\'ia esta base de los archivos, por lo que se procedi\'o a copiar y pegar y realizar algunas configuraciones en ellos, particularmente en el archivo 000-defaul.conf, el archivo apache2.conf se dejo exactamente con la configuraci\'on por default con la que se instala pero se agrego igualmente por si se desea realizar una modificaci\'on a este m\'as adelante. \\
+
+\newpage
+Procedemos a configurar el archivo \textbf{000-default.conf} de modo que deseamos que cada p\'agina este disponible en una direcci\'on ip distinta a la de las dem\'as p\'aginas web, de modo que nuestro archivo de configuraci\'on queda de la siguiente forma:
+
+\begin{figure}[h]
+\includegraphics[width=6cm,height=8cm]{conf1}
+\centering
+\end{figure}
+
+De este modo definimos un VirtualHost para cada uno de los sitios(incluyendo la p\'agina por default) cada una en una ip distinta, por lo que resumiendo cada sitio tendr\'a la siguiente ip:
+
+\begin{itemize}
+\item $\hbox{\textbf{default}} \Rightarrow \hbox{192.168.0.2}$
+\item $\hbox{\textbf{helloworld}} \Rightarrow \hbox{192.168.1.2}$
+\item $\hbox{\textbf{lapalma}} \Rightarrow \hbox{192.168.2.2}$
+\item $\hbox{\textbf{nightbeach}} \Rightarrow \hbox{192.168.3.2}$
+\end{itemize}
+
+\item Finalmente procedemos a crear el archivo Dockerfile, desde la terminal nos situamos en la carpeta apache2 donde hemos estado guardando los archivos y ejecutamos el comando: \\
+
+\$ gedit Dockerfile \\
+
+\newpage
+Inmediatamente el editor de texto se abrir\'a, presionaremos save y cerraremos el archivo.
+\begin{figure}[h]
+\includegraphics[width=12cm,height=4cm]{conf3}
+\centering
+\end{figure}
+
+Procederemos a abrir el archivo con el editor de texto sublimetext, el archivo en estos momentos esta vac\'io, pero procederemos a escribir diferentes instrucciones de modo que el archivo quede de la siguiente manera:
+
+\begin{figure}[h]
+\includegraphics[width=10cm,height=10cm]{conf4}
+\centering
+\end{figure}
+
+Como se puede observar en cada l\'inea hay distintas instrucciones, con un significado particular:\\
+\begin{enumerate}
+\item \textbf{FROM ubuntu:18.04} establece el S.O en el que la imagen va a estar basada para crear los archivos y directorios respectivos de cada contenedor basado en esa imagen.\\
+\item \textbf{RUN apt-get update \&\& apt-get -y install apache2} ejecuta el comando dado como si un usuario desde consola lo estuviera ejecutando para actualizar e instalar el servidor apache2, notes\'e que la bandera \textbf{-y} es agregada para que se acepte por default instalar los archivos sin necesidad de responder manualmente a la pregunta.\\
+\item \textbf{RUN apt-get install -y net-tools} este paquete permitir\'a hacer uso de comandos como \textbf{ifconfig} para visualizar cada una de las interfaces de red con las que cuenta el contenedor, algo que ser\'a muy importante m\'as adelante.\\
+\item \textbf{RUN apt-get install -y nano} El editor de texto que permitir\'a visualizar como es que nuestros archivos de configuraci\'on customizados son agregados al contenedor.\\
+\item \textbf{EXPOSE 80}, permite que el contenedor pueda comunicarse con otros contenedores a trav\'es de ese puerto.\\
+\item \textbf{COPY Sitio1 /var/www/html/\\COPY Sitio2 /var/www/html/\\COPY Sitio3 /var/www/html/}\\
+ 
+Copia cada una de las carpetas que contienen las p\'aginas web a desplegar, es en este punto donde es toma importancia que las carpetas de las p\'aginas web hayan sido anidadas, dado que el comando \textbf{COPY} entiende que hay que copiar todo lo que esta dentro de la carpeta espec\'ifica, por lo que la carpeta anidada en cada sitio(helloworld, lapalma, nightbeach) ser\'an copiadas por completo con su respectivo contenido dentro de ellas, si en cambio intentaramos copiarlas directamente, es decir \textbf{COPY helloworld /var/www/html}, etc. solo el contenido de est\'as ser\'a copiada por lo que puede provocar un desorden de archivos de distintos sitios web.\\
+
+\item \textbf{COPY apache2.conf /etc/apache2/\\COPY 000-default.conf /etc/apache2/sites-available}\\
+
+Estos comandos permiten agregar los archivos de configuraci\'on del servidor apache en los respectivos directorios del servidor Apache2 que se encuentran en la imagen(por eso es importante que el servidor Apache2 ya este instalado), de modo que el servidor de la imagen leer\'a la configuraci\'on de estos archivos customizados por nosotros y dar\'a el servicio tal y como lo deseamos. \\
+
+\item \textbf{CMD [``apachectl",``-D",``FOREGROUND"]}\\
+
+Este comando ejecutar\'a el servidor Apache2 en primer plano, de modo que sea el proceso que se estar\'a ejecutando durante toda la vida del contenedor, esto es importante dado que la vida de un contenedor de docker depende del proceso que se est\'e ejecutando, por lo que un proceso que no conlleve estar en constante ejecuci\'on y termine pronto har\'a que el contenedor de docker tambi\'en termine su ejecuci\'on, es gracias a este comando que el contenedor de docker estar\'a ejecutando el servicio de Apache2 por lo tanto el contenedor vivir\'a todo el tiempo que el mismo proceso del servicio viva.
+\end{enumerate}
+
+\item Como \'ultimo paso crearemos la imagen para nuestro servicio, para ello debemos estar una carpeta antes de la carpeta apache2 donde guardamos todos los archivos de configuraci\'on, de modo que si ejecutamos el comando \textbf{ls} la \'unica carpeta que debe aparecer debe ser apache2:
+
+\begin{figure}[h]
+\includegraphics[width=12cm,height=1cm]{cimg1}
+\centering
+\end{figure}
+
+
+Procedemos a ejecutar el comando con el que la imagen se construira, el cual es:\\
+
+\textbf{\$ sudo docker build apache2 -t apache2:ips}\\ 
+
+Los par\'ametros de este comando son:
+\begin{enumerate}
+\item \textbf{build} el cual indica a docker que se construira una imagen.
+\item \textbf{apache2} el nombre de la carpeta donde se encuentra nuestro Dockerfile y el resto de 			archivos necesarios para nuestra imagen.
+\item \textbf{-t} indica que lo siguiente ser\'a el nombre de la imagen as\'i como un respectivo tag de 		identificaci\'on.
+\item \textbf{apache2:ips} como se explico en el anterior punto, este par\'ametro consta de dos partes, 		el primero es \textbf{apache2} el cual es el nombre de la imagen que se crear\'a, finalmente y separado 		por un \textbf{:} est\'a el tag(opcional, si se omite, docker por default agregar\'a el tag latest) el 		cual es \textbf{ips}.
+\end{enumerate}
+
+
+Ejecutado este comando comenzar\'a el proceso para crear la imagen, donde podemos observar como los comandos definidos en el dockerfile son ejecutados uno por uno y se comienzan a realizar la instalaci\'on de los paquetes requeridos.
+
+\begin{figure}[h!]
+\includegraphics[width=10cm,height=4cm]{cimg2}
+\centering
+\includegraphics[width=10cm,height=3cm]{cimg3}
+\centering
+\includegraphics[width=10cm,height=3cm]{cimg4}
+\centering
+\includegraphics[width=10cm,height=6cm]{cimg5}
+\centering
+\end{figure}
+
+\clearpage
+
+Ejecutar comando para visualizar la imagen recientemente creada podremos ver la lista de imagenes disponibles que tenemos, de modo que podremos observar la imagen creada recientemente:\\
+
+\textbf{\$ sudo docker images} 
+\begin{figure}[h!]
+\centering
+\includegraphics[width=12cm,height=3cm]{cimg6}
+\caption{Se observa como primer resultado la imagen reci\'en creada.}
+\end{figure}
+
+\newpage
+\section{Creaci\'on de subredes en Docker}
+
+La creaci\'on de subredes en Docker permite a un contenedor estar conectado a multiples redes a las cuales puede ofrecer el servicio por el cual es creado, de esta forma es posible la comunicaci\'on entre otros contenedores o tambi\'en es posible que el servicio este disponible fuera del mismo entorno de Docker, es decir para que usuarios accedan al servicio.
+
+Para la creaci\'on de subredes hay que tener en cuenta las direcciones ip en donde nuestras p\'aginas web van a dar su servicio, el cual como se menciono con anterioridad quedo de la siguiente forma:
+
+
+\begin{itemize}
+\item $\hbox{\textbf{default}} \Rightarrow \hbox{192.168.0.2}$
+\item $\hbox{\textbf{helloworld}} \Rightarrow \hbox{192.168.1.2}$
+\item $\hbox{\textbf{lapalma}} \Rightarrow \hbox{192.168.2.2}$
+\item $\hbox{\textbf{nightbeach}} \Rightarrow \hbox{192.168.3.2}$
+\end{itemize}
+
+Observamos que cada una de las ip's pertenecen a una subred distinta, esto es porque al momento de conectar un contenedor a una subred, se crea una interfaz de red espec\'ifica para esa red dentro del contenedor y se le asigna una ip nueva al contenedor para esa interfaz de ese segmento de red al que se conecto, esto es necesario, ya que no es posible crear interfaces virtuales(como normalmente ser\'ia) de un mismo segmento de red en un contenedor, por lo tanto, para tener varias interfaces en un mismo contenedor es necesario tener varios segmentos de red(que no se repitan) para que al conectar el contenedor a estas subredes se puedan tener varias interfaces con una ip espec\'ifica en donde las p\'aginas web estar\'an alojadas.\\
+
+Una vez entendido esto, procedemos a crear cada uno de los segmentos de red que proporcionaran las ip's para nuestras p\'aginas web, usando el comando:\\
+
+\textbf{\$ sudo docker network create --driver param0 --subnet param1 --gateway param2 network\_name}\\
+
+Donde:
+
+\begin{itemize}
+\item \textbf{network create}: network indica una operaci\'on para redes, mientras que create indica que la operaci\'on ser\'a la creaci\'on de una nueva red
+\item \textbf{--driver param0}: con la bandera --driver podremos indicar\'a el tipo de subred que deseamos crear, hay tres tipos, bridge: el cual permite la conectividad entre contenedores, as\'i como al equipo externo donde se ejecuta el contenedor, none: que aisla totalmente de comunicaci\'on al contenedor y host: que permite heredar todas las interfaces que contiene el equipo host sobre el cual el contenedor se est\'a ejecutando, en nuestro caso el valor de \textbf{param0} ser\'a \textbf{bridge}.
+\item \textbf{--subnet param1}: indicara el segmento de red(ya sea de tipo A,B \'o C), en este par\'ametro debemos tener cuidado ya que este segmento de red debe ser el que contenga a la ip de nuestras p\'aginas web.
+\item \textbf{--gateway param2}: este par\'ametro indica la direcci\'on ip por la cual nuestra subred mandar\'a paquetes fuera de la misma para conectarse con otras redes.
+\item \textbf{network\_name}: este par\'ametro ser\'a el nombre de nuestra subred.
+\end{itemize}
+
+Ahora procedemos a crear las subredes ejecutando el comando anterior, pero con los respectivos valores para cada una de las subredes que convengan a nuestras p\'aginas web:
+\begin{enumerate}
+\item \textbf{default}: para esta subred el comando es: \$sudo docker network create --driver bridge --subnet 192.168.0.0/24 --gateway 192.168.0.1 subnet0 \\
+
+De modo que podemos ver que el segmento de red que contiene la ip elegida(192.168.0.2) es 192.168.0.0/24 a la cual se denomino subnet1.
+
+\item \textbf{helloworld}: para esta subred el comando es: \$ sudo docker network create --driver bridge --subnet 192.168.1.0/24 --gateway 192.168.1.1 subnet1 \\
+
+Este segmento de red que contiene la ip elegida(192.168.1.2) para helloworld.
+
+\item \textbf{lapalma}: para esta subred el comando es: \$ sudo docker network create --driver bridge --subnet 192.168.2.0/24 --gateway 192.168.2.1 subnet2 \\
+
+\item \textbf{helloworld}: para esta subred el comando es: \$ sudo docker network create --driver bridge --subnet 192.168.3.0/24 --gateway 192.168.3.1 subnet3 \\
+\end{enumerate}
+
+En la siguiente imagen se puede apreciar el listado de las redes una vez creadas con el comando \textbf{\$ sudo docker network ls}\\
+
+\begin{figure}[h!]
+\includegraphics[width=12cm,height=3cm]{net1}
+\centering
+\end{figure}
+
+\clearpage
+\section{Creaci\'on de contenedor}
+
+Para la creacion de un nuevo contenedor basado en la imagen recientemente creada ejecutaremos el siguiente comando: \\
+
+\textbf{\$ sudo docker run --name name\_container --network network\_name -p host\_port:container\_port -d name\_image}\\
+
+Donde: \\
+\begin{itemize}
+\item \textbf{run}: indica la creaci\'on de un contenedor.
+\item \textbf{--name name\_container}: El valor de name\_container indicar\'a el nombre del contenedor.
+\item \textbf{--network network\_name}: El valor de network\_name indicar\'a el nombre de la red a la que esta\'a conectado el contenedor desde su creaci\'on, solo es posible conectarlo a una red en un inicio, posteriormente se pueden hacer las conexiones del contenedor con varias subredes.
+\item \textbf{-p host\_port:container\_port}: est\'a bandera permitir\'a al contenedor conectar uno de sus puertos con uno de los puertos(libres) del host, para que de esta manera sea accesible el servicio desde fuera de la red interna de docker, el valor host\_port indica el puerto usado por el host mientras que container\_port es el puerto usado por el contenedor.
+\item \textbf{-d}: indica que la ejecuci\'on del contenedor no ser\'a explicitamente visible desde consola, aunque el servicio s\'i haya sido iniciado.
+\item \textbf{name\_image}: el nombre de la imagen(incluyendo tag) de la cual estar\'a basado el contenedor, en este caso ser\'a \textbf{apache2:ips}.
+\end{itemize}
+
+Una vez ejecutado el comando aparecera una clave hash, que indicara el ID del contenedor:\\
+
+\begin{figure}[h]
+\includegraphics[width=15cm,height=1.5cm]{net2}
+\caption{Podemos observar que el contenedor se llama \textbf{webserver}, la subred al que se conecta de inicio es \textbf{subnet0} y el puerto \textbf{80}(puerto para http) del contenedor estar\'a dando servicio en el puerto \textbf{8080} del host}
+\centering
+\end{figure}
+
+
+\clearpage
+En este momento nuestro contenedor ya esta en ejecuci\'on(se puede comprobar con el comando \textbf{\$sudo docker ps}), por lo tanto el servidor apache ya est\'a dando servicio, sin embargo, dado que el contenedor solo fue conectado a una red(subnet0) la \'unica p\'agina disponible es la p\'agina \textbf{default}, esto se puede comprobar si entramos directamente a la consola del contenedor con el comando:\\
+
+\textbf{\$ sudo docker exec -it webserver bash}\\
+El comando \textbf{exec} nos permite ejecutar un comando de consola en un contenedor de docker, mientras que la bandera \textbf{-it} har\'a que la ejecuci\'on se haga de forma interactiva, es decir nosotros podremos ver el resultado del comando una vez que lo ejecutemos, posteriormente se agrega el nombre del contenedor en ejecuci\'on y el comando deseado, en este caso ser\'a el comando \textbf{bash}, dado que deseamos desplegar la consola del contenedor.
+
+\begin{figure}[h]
+\includegraphics[width=12cm,height=2cm]{net3}
+\centering
+\end{figure}
+
+Si ejecutamos el comando \textbf{ifconfig} se desplegar\'an cada una de las interfaces de red disponibles.\\
+
+\begin{figure}[h]
+\includegraphics[width=8cm,height=6cm]{net4} \\
+\centering
+\caption{Observamos la interfaz referente a subnet0, donde nos otorgo la ip 192.168.0.2(una despu\'es de gateway)}
+\end{figure}
+
+\clearpage
+\section{Conectar contenedor a diferentes subredes}
+Una vez creado nuestro contenedor y estando en ejecuci\'on es posible conectarlo a las subredes restantes que permitir\'an que las otras p\'aginas web est\'en disponibles, para ello se usar\'a el comando:\\
+
+\textbf{\$ sudo docker network connect network\_name name\_container}
+
+Donde:
+\begin{itemize}
+\item \textbf{network connect}: network indica que es una operaci\'on que involucra una red, mientras que connect explicitamente indica que la operaci\'on ser\'a la conexi\'on entre una subred y un contenedor.
+\item \textbf{network\_name}: indica el nombre de la subred a conectar.
+\item \textbf{name\_container}: indica el nombre del contenedor a conectar.
+\end{itemize}
+
+De modo que debemos hacer la conexi\'on entre nuestro contenedor llamado \textbf{webserver} y las subredes \textbf{subnet1,subnet2,subnet3}, de la siguiente manera:
+
+\begin{figure}[h]
+\includegraphics[width=15cm,height=1cm]{net5}
+\centering
+\end{figure}
+
+Volviendo a la consola del contenedor, notamos que si ejecutamos el comando \textbf{ifconfig} el resto de interfaces que otorgan las ip's para el resto de sitios web ahora est\'an disponibles.
+
+\begin{figure}[h]
+\includegraphics[width=9cm,height=7cm]{net6}
+\centering
+\end{figure}
+
+\clearpage
+\section{Pruebas}
+Una vez finalizada la configuraci\'on podemos acceder a los sitios web, desde el navegador usando las ip's definidas para cada uno de ellos.\\
+
+\textbf{P\'agina default}
+\begin{figure}[h]
+\includegraphics[width=15cm,height=15cm]{test1}
+\end{figure}
+
+\clearpage
+
+\textbf{P\'agina helloworld}
+\begin{figure}[h]
+\includegraphics[width=15cm,height=2cm]{test2}
+\end{figure}
+
+\clearpage
+
+\textbf{P\'agina lapalma}
+\begin{figure}[h]
+\includegraphics[width=15cm,height=15cm]{test3}
+\end{figure}
+
+\clearpage
+
+\textbf{P\'agina nightbeach}
+\begin{figure}[h]
+\includegraphics[width=15cm,height=15cm]{test4}
+\end{figure}
+
+\clearpage
+\end{enumerate}
+\end{document}
