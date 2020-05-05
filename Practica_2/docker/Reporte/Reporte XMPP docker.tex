@@ -1,0 +1,62 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage[spanish]{babel}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\graphicspath{ {/home/jsebastian-ar/Documentos/Latex_images/Prosody/} }
+\usepackage[export]{adjustbox}
+
+\begin{document}
+\title{Montar Servidor XMPP y BD de postgresql en Contenedor Docker}
+\author{Acosta Rosales Jair Sebastián}
+\date{\today}
+\maketitle
+
+\section{Intoducción XMPP}
+XMPP, cuyo significado es Extensible Messaging and Presence Protocol, es un protocolo de mensajeria basado en XML, el cual permite un servicio de mensajerio entre usuarios que permite 
+
+\section{Descargando imagen Docker para Postgresql 11.4}
+
+Para este apartado no se creará un archivo Dockerfile para postgresql, en lugar de ello se implementará una imagen oficial desde la página \textbf{hub.docker.com} en donde es posible encontrar imagenes de múltiples servicios, uno de ellos de bases de datos, como lo pueden ser el propio postgrsql, mysql, etc.
+
+Por lo tanto, al acceder a la página hub.docker.com y buscar postgresql, deberá aparecer lo siguiente:\\
+
+
+\begin{figure}[htb]
+\centering
+\includegraphics[scale=.3]{postgresql1}
+\end{figure}
+
+El cual es la imagen oficial para postgresql, haciendo click a este enlace nos dirigira al sitio con todas las imagenes posibles para descargar e implementar en docker, iremos al apartado de la derecha donde se encuentra un comando de docker, en la parte de abajo habrá un enlace con lo siguiente \textbf{View Available Tags} lo que significa que ahí podremos ver las versiones disponibles de postgresql, y descargar la que deseemos.
+
+\begin{center}
+\includegraphics[scale=.5]{postgresql2}
+\end{center}
+
+Para este ejemplo se busco y se selecciono la versión 11.4 de postgresql, en la siguiente imagen podemos observar el comando con el cual podemos descargar esta imagen, ubicado en la esquina superior derecha, el cual es: \textbf{docker pull postgres:11.4}\\
+
+\begin{center}
+\centering
+\includegraphics[scale=.3]{postgresql3}
+\end{center}
+
+Ejecutando el comando en consola esperaremos a que la imagen sea descargada en nuestra computadora y poder crear un contenedor con este.
+
+\begin{center}
+\includegraphics[scale=.4]{postgresql4}\\
+En esta imagen se hizo el pull con la versión 11.7 de postgresql
+\end{center}
+
+Una vez descargado la nueva imagen procedemos a revisar las imagenes disponibles en nuestra version local de docker, con el comando \textbf{docker images}, donde se desplegará la lista de todas las imágenes disponibles.
+
+\begin{center}
+\includegraphics[scale=.5]{postgresql5}
+\end{center}
+
+\clearpage
+\section{Creación de imagen Docker para servidor XMPP}
+
+El servidor XMPP debe ser 
+
+\end{document}
