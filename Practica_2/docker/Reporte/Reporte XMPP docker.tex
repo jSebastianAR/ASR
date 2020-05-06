@@ -13,12 +13,12 @@
 \date{\today}
 \maketitle
 
-\section{Intoducción XMPP}
+\section{Introducción XMPP}
 XMPP, cuyo significado es Extensible Messaging and Presence Protocol, es un protocolo de mensajeria basado en XML, el cual permite un servicio de mensajerio entre usuarios que permite 
 
 \section{Descargando imagen Docker para Postgresql 11.4}
 
-Para este apartado no se creará un archivo Dockerfile para postgresql, en lugar de ello se implementará una imagen oficial desde la página \textbf{hub.docker.com} en donde es posible encontrar imagenes de múltiples servicios, uno de ellos de bases de datos, como lo pueden ser el propio postgrsql, mysql, etc.
+Para este apartado no se creará un archivo Dockerfile para postgresql, en lugar de ello se implementará una imagen oficial desde la página \url{https://hub.docker.com} en donde es posible encontrar imagenes de múltiples servicios, uno de ellos de bases de datos, como lo pueden ser el propio postgrsql, mysql, etc.
 
 Por lo tanto, al acceder a la página hub.docker.com y buscar postgresql, deberá aparecer lo siguiente:\\
 
@@ -54,9 +54,78 @@ Una vez descargado la nueva imagen procedemos a revisar las imagenes disponibles
 \includegraphics[scale=.5]{postgresql5}
 \end{center}
 
-\clearpage
+Así podemos corroborar que tenemos la imagen de postgresql para su futuro uso en un contenedor.
+
 \section{Creación de imagen Docker para servidor XMPP}
 
-El servidor XMPP debe ser 
+Para la creación de una imagen personalizada del servidor XMPP, se hará uso del servidor Prosody, del cual se obtuvo un Dockerfile de la siguiente dirección: \url{https://github.com/prosody/prosody-docker}, que requiere de la descarga del archivo .deb para la instalación del servidor prosody, el cual se puede obtener en: \url{https://debian.pkgs.org/10/debian-main-amd64/prosody_0.11.2-1_amd64.deb.html}, siendo la versión de debian, pues el SO base que será usado para esta imagen será Debian 10, sin embargo, hubo ciertas modificaciones a este archivo, las cuales se listan:
+
+\begin{itemize}
+\item \textbf{Se elimino el entrypoint}\\
+La imagen que es creada mediante el dockerfile requiere de un entrypoint que debe usarse cuando el comando \textbf{docker run} para la creación del contenedor es ejecutado, el entrypoint es ejecutado dentro de las instrucciones del dockerfile y para que el servidor sea iniciado, un parámetro extra debe agregarse al comando "docker run", si el parámetro es agregado y el entrypoint lo reconoce, el servidor se inicia, si el entrypoint no lo detecta, entonces el servidor no se inicia y el contenedor muere a los pocos segundos de haber sido iniciado, pues no tiene un proceso en ejecución para que siga viviendo.
+
+La gran desventaja de trabajar con ese entrypoint es que cuando el contenedor es creado y se ejecuta correctamente(con el servidor XMPP funcionando), este contenedor no podía ser detenido(docker stop) o reiniciado(docker restart), pues cuando el contenedor quisiese iniciarse nuevamente, el entrypoint se ejecutaria y lo que sucederia es que necesita pasar el parametro para iniciar el servidor, cosa que en un comando como \textbf{docker start} o \textbf{docker restart}, no es posible pasar parámetros.
+
+\item Comandos de edición del archivo de configuracion \textbf{prosody.cfg.lua}, dado que ya se poseían esos archivos con la configuración deseada, por lo que era más fácil realizar un COPY de archivos dentro del Dockerfile, que la ejecución de comandos para editar los archivos.
+
+\item Se eliminaron el resto de puertos a ser expuestos, manteniendo solo el puerto 5222.
+\end{itemize}
+
+De modo que el archivo de configuración ha quedado de la siguiente forma:
+
+\begin{center}
+\includegraphics[scale=.5]{prosody1}
+\end{center}
+
+En el podemos observar las distintas partes de instrucciones que lo conforman:
+\begin{enumerate}
+\item El SO base será Debian 10
+
+\item Las dependencias requeridas para el servidor, como los certificados ssl, los modulos de configuración de bases de datos, el editor nano para poder visualizar los archivos y verificar su configuración, la paquetería que permite visualizar las interfaces con el comando \textbf{ifconfig}, todos estos paquetes instalados bajo la bandera -y, la cual hace referencia a la palabra "yes" e indica que estamos deacuerdo con instalar los paquetes, asimismo indicamos que no se instalen paquetes recomendados de debian que pueden aparecer en la pantalla al momento de crear la imagen.
+
+\item Se copia y pega dentro del ambiente el paquete prosody.deb, el cual permitira instalar el servidor XMPP, además de que se ejecuta el comando correspondiente para la instalación de este.
+
+\item Se copian y pegan tres archivos previamente configurados o creados, los cuales son:
+	\begin{itemize}
+	\item \textbf{prosody.cfg.lua}: Contiene toda la configuración del funcionamiento de nuestro servidor, es copiado en la ruta correspondiente donde se instalaría normalmente los archivos de configuración de prosody, es decir /etc/prosody.
+	\item \textbf{docker.com.crt}: Es el certificado de seguridad ssl creado específicamente para el servidor, el cual permite cifrar los mensajes que los usuarios se estén enviando entre si.
+	\item \textbf{docker.com.key}: El archivo key es generado junto con el archivo .ctr y contiene la llave de cifrado de mensajes.
+	\end{itemize}
+
+\item Una vez que los archivos son copiados, el comando \textbf{chown} es ejecutado para estos, con la finalidad de que el usuario "prosody" pueda leerlos y ejecutarlos.
+
+\item Se expone el puerto 5222, visible para otros contenedores.
+
+\item Como intrucción final se configura para que el comando ejecutado en consola sea \textbf{prosodyctl start} lo cual permite iniciar el servidor y por lo tanto, permite que el servicio se ejcute y mantenga vivo el contenedor, esta intrucción sustituye al entrypoint, que como se explico, traía consigo desventajas, pero con esta instrucción es posible detener o reiniciar la ejecución de un contenedor y que este al ser iniciado pueda ejecutarse sin problemas.
+\end{enumerate}
+
+Una vez terminado de configurar el Dockerfile, se procede con la creación de la imagen correspondiente, a través del comando \textbf{docker build file\_path\_Dockerfile -t name:tag}.
+
+Donde:
+
+\begin{itemize}
+\item \textbf{file\_path\_Dockerfile}: Es la ruta de la carpeta donde se encuentra ubicado el Dockerfile
+\item \textbf{-t}: Esta bandera hace referencia a que se agregara un tag en especial para identificar entre imágenes que posean el mismo nombre.
+\item \textbf{name:tag}: La parte name hace referencia al nombre que se le dará a la imagen, mientras que tag será la etiqueta única que identificará a esa imagen entre otras posibles con el mismo nombre.
+\end{itemize}
+
+Finalmente al crear la imagen:
+
+\begin{center}
+\includegraphics[scale=.5]{prosody2}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=.5]{prosody3}
+\end{center}
+
+Obtenemos un mensaje exitoso de que la creación de la imagen ha terminado y si revisamos las imagenes con el comando \textbf{docker images}.
+
+\begin{center}
+\includegraphics[scale=.5]{prosody4}
+\end{center}
+
+
+\textbf{docker run -d --name=name\_container -p host\_port:container\_port }
 
 \end{document}
