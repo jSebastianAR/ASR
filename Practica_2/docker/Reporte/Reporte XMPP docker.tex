@@ -4,6 +4,7 @@
 \usepackage[spanish]{babel}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage[T1]{fontenc}
 \graphicspath{ {/home/jsebastian-ar/Documentos/Latex_images/Prosody/} }
 \usepackage[export]{adjustbox}
 
@@ -125,6 +126,55 @@ Obtenemos un mensaje exitoso de que la creación de la imagen ha terminado y si 
 \includegraphics[scale=.5]{prosody4}
 \end{center}
 
+\section{Creacion de subred para la conexión entre contenedores}
+Se creará una subred interna de docker del tipo bridge, con la finalidad de que ambos contenedores se encuentren en la misma red y puedan comunicarse entre si a través de sus direcciones ip.
+
+Lo anterior se puede crear con el siguiente comando:\\
+
+\textbf{docker network create --driver bridge --subnet subred\_deseada nombre\_de\_red}
+
+Lo anterior se puede entender de la siguiente forma:
+
+\begin{enumerate}
+\item \textbf{--driver bridge}: Esta bandera indica el tipo de red a la que estará conectado el contenedor, existen tres tipos:
+	\begin{itemize}
+		\item \textbf{NONE}: Este tipo de red indica que será una red aislada, en la que el contenedor conectado no tendrá acceso ni a las interfaces de la computadora donde está ejecutandose ni tampoco a la comunicación con otros contenedores.
+		
+		\item \textbf{HOST}: Este tipo de red, permite al contenedor tener acceso y conectividad a todas las interfaces de red, de la computadora donde se está ejecutando.
+		
+		\item \textbf{BRIDGE}: Este tipo de red permite tanto conectividad con las interfaces de red de la computadora donde se está ejecutando y comunicación con otros contenedores.
+		
+Para este caso, nosotros deseamos conectividad con otro contenedor XMPP,aunque no necesariamente que la BD este expuesta a otros servicios, pues solo el servidor Prosody se comunicará con este contenedor, de este modo se elige el tipo de subred bridge.
+	\end{itemize}
+
+\item \textbf{--subnet subred\_deseada}: Esta bandera nos permitirá indicar de que subred se tratará, así como las direcciones disponibles en ella, de modo que subred deseada será \textbf{192.168.10.0/24} con la notación \textbf{/24} indicando el número de bits que ocupará para la parte de la red, dejando el último octeto para los hosts disponibles en la red.
+
+\item \textbf{nombre\_de\_red}: Este será el nombre que deseamos darle a la red para identificarla.
+\end{enumerate}
+
+Para este caso el comando quedará de la siguiente manera.\\
+
+\textbf{docker network create --driver bridge --subnet 192.168.10.0/24 prosodynet}\\
+
+Una vez ejecutado el comando anterior podemos listar las redes de docker y notar que tenemos la nueva red.
+
+\begin{center}
+\includegraphics[scale=.5]{subnet1}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=.5]{subnet2}\\
+Observamos más a detalle la información de la subred
+\end{center}
+
+\section{Creación de los contenedores}
+Una vez que se tienen las imágenes, procederemos a crear los contenedores para la ejecución de los servicios.
+
+\paragraph{Contenedor de Postgresql}
+
+Para la creación del contenedor de postgresql, se ejecutara el siguiente comando:\\
+
+\textbf{docker run -d --name=nombre\_contenedor }
 
 \textbf{docker run -d --name=name\_container -p host\_port:container\_port }
 
