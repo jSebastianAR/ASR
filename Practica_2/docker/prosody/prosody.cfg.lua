@@ -160,8 +160,7 @@ storage = {
 --sql = { driver = "SQLite3", database = "prosody.sqlite" } -- Default. 'database' is the filename.
 --sql = { driver = "MySQL", database = "prosody", username = "prosody", password = "secret", host = "localhost" }
 --sql = { driver = "PostgreSQL", database = "prosody", username = "prosody", password = "secret", host = "localhost" }
---sql = { driver = "PostgreSQL", database = "prosody", username = "postgres", password = "postgres", host = "192.168.10.3" }
-sql = { driver = "PostgreSQL", database = "prosody", username = "postgres", password = "postgres", host = "localhost" }
+sql = { driver = "PostgreSQL", database = "prosody", username = "postgres", password = "postgres", host = "192.168.10.3" }
 
 
 -- Archiving configuration

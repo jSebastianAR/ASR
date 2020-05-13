@@ -1,11 +1,4 @@
-################################################################################
-# Build a dockerfile for Prosody XMPP server
-# Based on ubuntu
-################################################################################
-
 FROM debian:10
-
-MAINTAINER Prosody Developers <developers@prosody.im>
 
 # Install dependencies
 RUN apt-get update \
@@ -48,6 +41,7 @@ RUN chown prosody: /etc/prosody/prosody.cfg.lua && chown prosody: /var/lib/proso
 RUN mkdir -p /var/run/prosody && chown prosody:prosody /var/run/prosody
 
 EXPOSE 5222
-ENV __FLUSH_LOG yes
 
 CMD ["prosodyctl", "start"]
+
+

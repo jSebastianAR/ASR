@@ -95,6 +95,8 @@ En el podemos observar las distintas partes de instrucciones que lo conforman:
 
 \item Una vez que los archivos son copiados, el comando \textbf{chown} es ejecutado para estos, con la finalidad de que el usuario "prosody" pueda leerlos y ejecutarlos.
 
+\item Se crea la carpeta donde se almacenara el archivo .pid del proceso de prosody, este archivo pid contendrá el id único del proceso en el contenedor, \textbf{nota: Se identifico que sin está instrucción el servidor no es capaz de mantenerse activo, se especula que es debido a que necesita de esta carpeta para poder almacenar el id del proceso y por lo tanto poder asignarle uno.}
+
 \item Se expone el puerto 5222, visible para otros contenedores.
 
 \item Como intrucción final se configura para que el comando ejecutado en consola sea \textbf{prosodyctl start} lo cual permite iniciar el servidor y por lo tanto, permite que el servicio se ejcute y mantenga vivo el contenedor, esta intrucción sustituye al entrypoint, que como se explico, traía consigo desventajas, pero con esta instrucción es posible detener o reiniciar la ejecución de un contenedor y que este al ser iniciado pueda ejecutarse sin problemas.
@@ -167,15 +169,105 @@ Una vez ejecutado el comando anterior podemos listar las redes de docker y notar
 Observamos más a detalle la información de la subred
 \end{center}
 
-\section{Creación de los contenedores}
+\section{Creación y configuración de los contenedores}
 Una vez que se tienen las imágenes, procederemos a crear los contenedores para la ejecución de los servicios.
 
-\paragraph{Contenedor de Postgresql}
+\subsection{Contenedor de Postgresql}
 
 Para la creación del contenedor de postgresql, se ejecutara el siguiente comando:\\
 
-\textbf{docker run -d --name=nombre\_contenedor }
+\textbf{docker run -d --name nombre\_contenedor --subnet nombre\_subred --ip dir\_ip nombre\_imagen}\\
 
-\textbf{docker run -d --name=name\_container -p host\_port:container\_port }
+Donde:
+
+\begin{enumerate}
+\item \textbf{-d}: Bandera que ejecuta la acción en \textit{detached mode}, esto significa que el contenedor y servidor se ejecutara pero de forma oculta, no será posible funcionar el contenedor al momento de ejecutar el comando. 
+
+\item \textbf{--name}: Permite asignar un nombre al contenedor
+
+\item \textbf{--subnet}: Permite asignar la subred a la que deseamos que el contenedor pertenezca (aquí se especificara la subred que creamos).
+
+\item \textbf{--ip}: Permite especificar la dirección ip que deseamos que tenga el contenedor, esto será útil para realizar la conexión entre ambos contenedores, pues en el archivo de configuración de Prosody \textit{Prosody.cfg.lua} debemos especificar la ip donde se encuentra la base de datos.
+
+\begin{center}
+\label{configdb}
+\includegraphics[scale=.5]{container1}\\
+Línea de configuración de la BD en el archivo Prosody.cfg.lua
+\end{center}
+
+\item \textbf{nombre\_imagen}: Nombre de la imagen a la que le será creado un contenedor.
+
+\end{enumerate}
+
+Finalmente el comando queda de la siguiente manera:\\
+
+\textbf{docker run -d --name bdpg --subnet prosodynet --ip 192.168.10.3 postgres:11.4}\\
+
+Una vez ejecutado, podemos verlo en ejecución con ayuda del comando \textit{docker ps}
+
+\begin{center}
+\includegraphics[scale=.3]{container2}
+\end{center}
+
+Con el comando \textit{docker inspect nombre\_contenedor} podremos ver las especificaciones de un contenedor en particular, en este caso "bdpg". En la siguiente imagen se observan las especificaciones de la red a la que fue asignado y su ip, como era de esperarse.
+
+\begin{center}
+\includegraphics[scale=.4]{container3}
+\end{center}
+
+\subsection{Configuración de contenedor bdpg}
+
+Una vez creado el contenedor, procedemos a crear la base de datos donde serán almacenados los mensajes que el servidor XMPP reciba y envie. Para ello accederemos al contenedor con el comando \textbf{docker exec -it bdpg bash}, este comando nos permite acceder a la consola del contenedor para poder observar su funcionamiento.
+
+\begin{center}
+\includegraphics[scale=.4]{cfgcontainer1}
+\end{center}
+
+Ahora procedemos a ejecutar el comando para crear la base de datos, el cual es: \textit{createdb -U postgres name\_db}, donde name\_db es el nombre de la base de datos que especificamos en el archivo de configuración \textit{\hyperref[configdb]{Línea de configuración de la BD en Prosody}}
+
+De modo que el comando a ejecutar será:
+
+\begin{center}
+\includegraphics[scale=.4]{cfgcontainer2}
+\end{center}
+
+Listando las BD del contenedor
+
+\begin{center}
+\includegraphics[scale=.4]{cfgcontainer3}
+\end{center}
+
+\subsection{Contenedor de Prosody}
+
+Para el contenedor de prosody se ejecutara el siguiente comando
+
+\textbf{docker run -d --name xmpp --subnet prosodynet --ip 192.168.10.2 -p host\_port:container\_port prosody:f}\\
+
+En este comando podemos notar una nueva bandera a diferencia del que se ejecuto para Postgresql, la cual es \textbf{-p}, esta bandera nos permite conectar un puerto de nuestro host(computadora) a un puerto del contenedor a ser creado, en este caso conectaremos el puerto 5222 del contenedor dado que es el predeterminado para el servidor Prosody, y para el servicio XMPP en general. De igual forma, el puerto elegido del host será el 5222.\\
+
+Finalmente el comando queda:
+
+\textbf{docker run -d --name xmpp --subnet prosodynet --ip 192.168.10.2 -p 5222:5222 prosody:f}\\
+
+\begin{center}
+\includegraphics[scale=.3]{container4}
+\end{center}
+
+\subsection{Configuración de contenedor xmpp}
+
+Ingresando a la consola del contenedor con el comando \textbf{docker exec -it xmpp bash}. Crearemos dos usuarios para el servidor Prosody, de modo que estos puedan mandarse mensajes y estos mensajes sean almacenados en la base de datos en el contenedor \textit{bdpg}.
+
+Para ello ejecutaremos comandos específicos del servidor prosody, como lo es: \textbf{prosodyctl adduser JID}, donde \textbf{JID} es el nombre que le daremos al usuario, pero siempre terminando con el nombre del host virtual  especificado en el archivo de configuración de prosody (en este caso el nombre del host virtual es "docker.com") acompañado de un "@".
+
+\begin{center}
+\includegraphics[scale=.6]{cfgcontainer4}\\
+Apartado del archivo Prosody.cfg.lua donde se declara el host virtual
+\end{center}
+
+\begin{center}
+\includegraphics[scale=.5]{cfgcontainer5}\\
+Dos usuarios son creados con sus respectivas contraseñas
+\end{center}
+
 
 \end{document}
