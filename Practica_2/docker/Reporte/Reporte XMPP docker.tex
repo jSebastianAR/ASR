@@ -237,6 +237,12 @@ Listando las BD del contenedor
 \includegraphics[scale=.4]{cfgcontainer3}
 \end{center}
 
+Observamos que la base de datos recién creada no contiene ninguna tabla, pues el servidor Prosody creara automáticamente estas tablas al hacer los primeros registros de mensajes en ella.
+
+\begin{center}
+\includegraphics[scale=.5]{cfgcontainer6}
+\end{center}
+
 \subsection{Contenedor de Prosody}
 
 Para el contenedor de prosody se ejecutara el siguiente comando
@@ -269,5 +275,105 @@ Apartado del archivo Prosody.cfg.lua donde se declara el host virtual
 Dos usuarios son creados con sus respectivas contraseñas
 \end{center}
 
+\section{Configuración de cuentas}
+
+Una vez hechas las configuraciones correspondientes en los contenedores, procedemos a realizar las pruebas de intercambio de mensajes entre dos usuarios, concretamente:
+
+\begin{itemize}
+\item \textbf{dsebas-lap@docker.com}: Usuario de laptop, que enviará mensajes a través de la aplicación \textit{Psi}.
+
+\item \textbf{dsebas-mi@docker.com}: Usuario de smartphone, conectado por medio de la aplicación \textit{Bruno the Jabber Bear (XMPP)}.
+\end{itemize}
+
+\subsection{Configurando cuenta en Psi}
+Para configurar una nueva cuenta en Psi, es necesario seleccionar el ícono de la aplicación y seleccionar la opción "add contact".\\
+
+Procedemos a darle un nombre a la cuenta dentro del equipo.
+\begin{center}
+\includegraphics[scale=.5]{accounts1}
+\end{center}
+
+Ahora se agregará el nombre de la cuenta que fue creada en el servidor prosody (\textit{dsebas-lap@docker.com}) exclusivamente para el usuario de laptop con su respectiva contraseña.
+
+\begin{center}
+\includegraphics[scale=.4]{accounts2}
+\end{center}
+
+En el apartado connection se da check para especificar la dirección del host (la dirección del equipo donde estarán corriendo los contenedores), para saber su dirección ip, basta con ejecutar en consola el comando \textbf{ifconfig}, además de que se especifica el puerto donde se atenderán las peticiones, mismo puerto que fue conectado al puerto interno del contenedor.
+
+\begin{center}
+\includegraphics[scale=.4]{accounts3}
+\end{center}
+
+Terminada la configuración procedemos a poner la cuenta en modo online, aparecerá una ventana emergente preguntando si confiamos en los certificados de seguridad del servidor, aceptamos (\textit{Trust this certificate}); después se pedirá que ingresemos la contraseña de nuestra cuenta nuevamente; además pedira llenar un registro con algunos de nuestros datos (bastara con poner nuestro nombre y nickname); y finalmente veremos la cuenta en linea, esto quiere decir que se ha conectado exitosamente al servidor Prosody que se está ejecutando en el contenedor.
+
+\begin{center}
+\includegraphics[scale=.4]{accounts4}
+\end{center}
+
+\subsection{Configuración de cuenta en Bruno the Jabber Bear (XMPP)}
+
+Al abrir la aplicación deberemos ir al apartado de configuración y posteriormente en configuración de cuenta:
+
+Aquí se agregará la información de la cuenta creada para smartphone desde Prosody (\textit{dsebas-mi@docker.com}) y su respectiva contraseña.
+
+\begin{center}
+\includegraphics[scale=.2]{accounts5}
+\end{center}
+
+Ahora se agregará la configuración del host
+
+\begin{center}
+\includegraphics[scale=.2]{accounts6}
+\end{center}
+
+Finalmente se procederá a conectar la cuenta: 
+
+\begin{center}
+\includegraphics[scale=.2]{accounts7}
+\end{center}
+
+Una vez que ambas cuentas están conectadas, para que ambas cuentas se puedan enviar mensajes, deben agregarse, esto puede ser desde la cuenta en \textit{Psi} o \textit{Bruno}, en este caso se realizo desde Psi.
+
+En el apartado de "add contact", debemos escribir el nombre del usuario (registrado en Prosody) que deseamos agregar a nuestros contactos.
+
+\begin{center}
+\includegraphics[scale=.4]{accounts8}
+\end{center}
+
+Una vez que lo agregamos, nos llegará una solicitud automática para que el usuario agregado, también nos pueda agregar desde su dispositivo.
+
+\begin{center}
+\includegraphics[scale=.5]{accounts9}
+\end{center}
+
+Una vez aceptado es posible que ambos desde sus respectivos dispositivos vean al otro y se puedan comunicar.
+
+\begin{center}
+\includegraphics[scale=.668]{accounts10}
+\includegraphics[scale=.2]{accounts11}
+\end{center}
+
+\section{Pruebas}
+
+Ahora ambos dispositivos son capaces de enviarse mensajes.
+
+\begin{center}
+\includegraphics[scale=.5]{msg1}
+\includegraphics[scale=.2]{msg2}
+\end{center}
+
+Observamos que la base de datos ahora tiene nuevas tablas y si listamos los elementos de la tabla \textit{prosodyarchive}, vemos que esta contiene los mensajes intercambiados.
+
+\begin{center}
+\includegraphics[scale=.3]{msg3}
+\end{center}
+
+\clearpage
+Mensajes almacenados
+
+\begin{center}
+\includegraphics[scale=.3]{msg4}
+\end{center}
 
 \end{document}
