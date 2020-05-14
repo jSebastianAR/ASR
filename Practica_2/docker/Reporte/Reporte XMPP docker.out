@@ -1,13 +1,12 @@
-\BOOKMARK [1][-]{section.1}{Introducci\363n XMPP}{}% 1
-\BOOKMARK [1][-]{section.2}{Descargando imagen Docker para Postgresql 11.4}{}% 2
-\BOOKMARK [1][-]{section.3}{Creaci\363n de imagen Docker para servidor XMPP}{}% 3
-\BOOKMARK [1][-]{section.4}{Creacion de subred para la conexi\363n entre contenedores}{}% 4
-\BOOKMARK [1][-]{section.5}{Creaci\363n y configuraci\363n de los contenedores}{}% 5
-\BOOKMARK [2][-]{subsection.5.1}{Contenedor de Postgresql}{section.5}% 6
-\BOOKMARK [2][-]{subsection.5.2}{Configuraci\363n de contenedor bdpg}{section.5}% 7
-\BOOKMARK [2][-]{subsection.5.3}{Contenedor de Prosody}{section.5}% 8
-\BOOKMARK [2][-]{subsection.5.4}{Configuraci\363n de contenedor xmpp}{section.5}% 9
-\BOOKMARK [1][-]{section.6}{Configuraci\363n de cuentas}{}% 10
-\BOOKMARK [2][-]{subsection.6.1}{Configurando cuenta en Psi}{section.6}% 11
-\BOOKMARK [2][-]{subsection.6.2}{Configuraci\363n de cuenta en Bruno the Jabber Bear \(XMPP\)}{section.6}% 12
-\BOOKMARK [1][-]{section.7}{Pruebas}{}% 13
+\BOOKMARK [1][-]{section.1}{Descargando imagen Docker para Postgresql 11.4}{}% 1
+\BOOKMARK [1][-]{section.2}{Creaci\363n de imagen Docker para servidor XMPP}{}% 2
+\BOOKMARK [1][-]{section.3}{Creacion de subred para la conexi\363n entre contenedores}{}% 3
+\BOOKMARK [1][-]{section.4}{Creaci\363n y configuraci\363n de los contenedores}{}% 4
+\BOOKMARK [2][-]{subsection.4.1}{Contenedor de Postgresql}{section.4}% 5
+\BOOKMARK [2][-]{subsection.4.2}{Configuraci\363n de contenedor bdpg}{section.4}% 6
+\BOOKMARK [2][-]{subsection.4.3}{Contenedor de Prosody}{section.4}% 7
+\BOOKMARK [2][-]{subsection.4.4}{Configuraci\363n de contenedor xmpp}{section.4}% 8
+\BOOKMARK [1][-]{section.5}{Configuraci\363n de cuentas}{}% 9
+\BOOKMARK [2][-]{subsection.5.1}{Configurando cuenta en Psi}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.2}{Configuraci\363n de cuenta en Bruno the Jabber Bear \(XMPP\)}{section.5}% 11
+\BOOKMARK [1][-]{section.6}{Pruebas}{}% 12
