@@ -35,6 +35,21 @@ RUN apt-get update && \
 COPY ./proftpd.deb /tmp/proftpd.deb
 RUN dpkg -i /tmp/proftpd.deb
 
+#Creando carpetas de subida y descarga de archivos, además agregando una shell falsa que impide que los usuarios accedan a terminal
+
+RUN mkdir /home/ftp/
+
+#Copia 
+COPY ftpdirectory /home/ftp/
+
+#chown root: /home/ftp/upload && chown root: /home/ftp/download	 \
+
+RUN chmod 777 /home/ftp/upload && chmod 755 /home/ftp/download && \
+ echo "/bin/false" >> /etc/shells && \
+ adduser laptop --home /home/ftp/ -shell /bin/false 
+
+# echo "AllowForeignAddress             on" >> /etc/proftpd/proftpd.conf	#Permite las conexiones de ip's foraneas
+
 EXPOSE 21
 
 #Inicia el servidor en modo foreground
