@@ -41,12 +41,19 @@ RUN mkdir /home/ftp/
 
 #Copia 
 COPY ftpdirectory /home/ftp/
+COPY proftpd.cert.pem /etc/ssl/certs/
+COPY proftpd.key.pem /etc/ssl/private/
+COPY proftpd.conf /etc/proftpd/
 
 #chown root: /home/ftp/upload && chown root: /home/ftp/download	 \
 
 RUN chmod 777 /home/ftp/upload && chmod 755 /home/ftp/download && \
  echo "/bin/false" >> /etc/shells && \
- adduser laptop --home /home/ftp/ -shell /bin/false 
+ addgroup ftp && \
+ useradd --group ftp --home /home/ftp/ -s /bin/false laptop && \
+ useradd --group ftp --home /home/ftp/ -s /bin/false motorola && \
+ useradd --home /home/ftp/ -s /bin/false xiaomi
+ 
 
 # echo "AllowForeignAddress             on" >> /etc/proftpd/proftpd.conf	#Permite las conexiones de ip's foraneas
 
