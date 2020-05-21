@@ -44,6 +44,7 @@ COPY ftpdirectory /home/ftp/
 COPY proftpd.cert.pem /etc/ssl/certs/
 COPY proftpd.key.pem /etc/ssl/private/
 COPY proftpd.conf /etc/proftpd/
+COPY tls.conf /etc/proftpd/
 
 #chown root: /home/ftp/upload && chown root: /home/ftp/download	 \
 
